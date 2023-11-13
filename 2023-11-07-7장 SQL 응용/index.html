@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"eht3r.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"hide","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":true,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="7장 SQL 응용1. 내장함수  열 이름이나 상수 값을 입력받아 값 하나를 결과로 반환  기본 연산 함수와 시스템 정보 제공 함수, 데이터 가공 함수 등이 지원  SELECT절이나 WHERE절 뿐만 아니라 UPDATE SET절 등에서도 사용 가능  주요 내장 함수    구분 함수 기능    숫자 함수 ABS(값)    CEIL(값)     FLOOR(값)">
+<meta property="og:type" content="article">
+<meta property="og:title" content="7장 SQL 응용">
+<meta property="og:url" content="https://eht3r.github.io/2023-11-07-7%E1%84%8C%E1%85%A1%E1%86%BC%20SQL%20%E1%84%8B%E1%85%B3%E1%86%BC%E1%84%8B%E1%85%AD%E1%86%BC/index.html">
+<meta property="og:site_name" content="Dev.note">
+<meta property="og:description" content="7장 SQL 응용1. 내장함수  열 이름이나 상수 값을 입력받아 값 하나를 결과로 반환  기본 연산 함수와 시스템 정보 제공 함수, 데이터 가공 함수 등이 지원  SELECT절이나 WHERE절 뿐만 아니라 UPDATE SET절 등에서도 사용 가능  주요 내장 함수    구분 함수 기능    숫자 함수 ABS(값)    CEIL(값)     FLOOR(값)">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:image" content="https://eht3r.github.io/7%E1%84%8C%E1%85%A1%E1%86%BC%20SQL%20%E1%84%8B%E1%85%B3%E1%86%BC%E1%84%8B%E1%85%AD%E1%86%BC%2072dba5ea64af432b8e6b6406f20b9afc/Untitled.png">
+<meta property="og:image" content="https://eht3r.github.io/7%E1%84%8C%E1%85%A1%E1%86%BC%20SQL%20%E1%84%8B%E1%85%B3%E1%86%BC%E1%84%8B%E1%85%AD%E1%86%BC%2072dba5ea64af432b8e6b6406f20b9afc/Untitled%201.png">
+<meta property="og:image" content="https://eht3r.github.io/7%E1%84%8C%E1%85%A1%E1%86%BC%20SQL%20%E1%84%8B%E1%85%B3%E1%86%BC%E1%84%8B%E1%85%AD%E1%86%BC%2072dba5ea64af432b8e6b6406f20b9afc/Untitled%202.png">
+<meta property="og:image" content="https://eht3r.github.io/7%E1%84%8C%E1%85%A1%E1%86%BC%20SQL%20%E1%84%8B%E1%85%B3%E1%86%BC%E1%84%8B%E1%85%AD%E1%86%BC%2072dba5ea64af432b8e6b6406f20b9afc/Untitled%203.png">
+<meta property="og:image" content="https://eht3r.github.io/7%E1%84%8C%E1%85%A1%E1%86%BC%20SQL%20%E1%84%8B%E1%85%B3%E1%86%BC%E1%84%8B%E1%85%AD%E1%86%BC%2072dba5ea64af432b8e6b6406f20b9afc/Untitled%204.png">
+<meta property="article:published_time" content="2023-11-06T15:00:00.000Z">
+<meta property="article:modified_time" content="2023-11-13T00:50:28.133Z">
+<meta property="article:author" content="Mingyu Park">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://eht3r.github.io/7%E1%84%8C%E1%85%A1%E1%86%BC%20SQL%20%E1%84%8B%E1%85%B3%E1%86%BC%E1%84%8B%E1%85%AD%E1%86%BC%2072dba5ea64af432b8e6b6406f20b9afc/Untitled.png">
+
+<link rel="canonical" href="https://eht3r.github.io/2023-11-07-7%E1%84%8C%E1%85%A1%E1%86%BC%20SQL%20%E1%84%8B%E1%85%B3%E1%86%BC%E1%84%8B%E1%85%AD%E1%86%BC/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'ko'
+  };
+</script>
+
+  <title>7장 SQL 응용 | Dev.note</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Dev.note</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">앱과 인공지능에 관심이 많은 대학생 개발자</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>홈</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>태그</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>카테고리</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>아카이브</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Eht3r" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="ko">
+    <link itemprop="mainEntityOfPage" href="https://eht3r.github.io/2023-11-07-7%E1%84%8C%E1%85%A1%E1%86%BC%20SQL%20%E1%84%8B%E1%85%B3%E1%86%BC%E1%84%8B%E1%85%AD%E1%86%BC/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Mingyu Park">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Dev.note">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          7장 SQL 응용
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">작성일</span>
+
+              <time title="Post created: 2023-11-07 00:00:00" itemprop="dateCreated datePublished" datetime="2023-11-07T00:00:00+09:00">2023-11-07</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Updated at: 2023-11-13 09:50:28" itemprop="dateModified" datetime="2023-11-13T09:50:28+09:00">2023-11-13</time>
+              </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Disqus: </span>
+    
+    <a title="disqus" href="/2023-11-07-7%E1%84%8C%E1%85%A1%E1%86%BC%20SQL%20%E1%84%8B%E1%85%B3%E1%86%BC%E1%84%8B%E1%85%AD%E1%86%BC/#disqus_thread" itemprop="discussionUrl">
+      <span class="post-comments-count disqus-comment-count" data-disqus-identifier="/2023-11-07-7장 SQL 응용/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  <br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>1.6k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>6 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="7장-SQL-응용"><a href="#7장-SQL-응용" class="headerlink" title="7장 SQL 응용"></a>7장 SQL 응용</h1><h1 id="1-내장함수"><a href="#1-내장함수" class="headerlink" title="1. 내장함수"></a>1. 내장함수</h1><hr>
+<ul>
+<li><p>열 이름이나 상수 값을 입력받아 값 하나를 결과로 반환</p>
+</li>
+<li><p>기본 연산 함수와 시스템 정보 제공 함수, 데이터 가공 함수 등이 지원</p>
+</li>
+<li><p><strong>SELECT절</strong>이나 <strong>WHERE절 뿐만 아니라</strong> UPDATE SET절 등에서도 사용 가능</p>
+</li>
+<li><p>주요 내장 함수</p>
+<table>
+<thead>
+<tr>
+<th>구분</th>
+<th>함수</th>
+<th>기능</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>숫자 함수</td>
+<td>ABS(값)</td>
+<td></td>
+</tr>
+<tr>
+<td>CEIL(값)</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>FLOOR(값)</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>ROUND(값, 자리수)</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>FORMAT(값, 형식)</td>
+<td>입력 값의 절댓값 변환</td>
+<td></td>
+</tr>
+<tr>
+<td>입력값보다 큰 정수 중에서 가장 작은 수 변환</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>입력 값보다 작은 정수 중에서 가장 큰 수 반환</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>입력 값을 소수점 이하 자리 수 까지 반올림한 값 변환</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>입력 값을 형식에 맞게 변환하여 반환</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>문자 함수</td>
+<td>LENGTH(문자열)</td>
+<td></td>
+</tr>
+<tr>
+<td>CHAR_LENGTH(문자열)</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>CONCAT(문자열_리스트)</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>LEFT&#x2F;RIGHT(문자열,길이)</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>LTRIM&#x2F;RTRIM(문자열)</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>SUBSTRING(문자열, 위치, 길이)</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>REPLACE(문자열), 검색 문자열, 치환문자열</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>REPEAT(문자열, 반복횟수)</td>
+<td>문자열의 길이(바이트수)를 반환</td>
+<td></td>
+</tr>
+<tr>
+<td>문자열의 길이(문자수)를 반환</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>콤마로 구분된 문자열, 컬럼 값들의 결합 반환</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>문자열의 왼쪽&#x2F;오른쪽부터 길이만큼 반환</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>문자열의 왼쪽&#x2F;오른쪽 공백을 제거하여 반환</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>문자열의 ‘위치’ 번째부터 ‘길이’ 개수 만큼의 부분 문자열을 반환</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>문자열의 일부를 치환하여 반환</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>날자·시간 함수</td>
+<td>SYSDATE(), NOW()</td>
+<td></td>
+</tr>
+<tr>
+<td>CURRENT_DATE()</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>CURRENT_TIME()</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>YEAR(날짜), MONTH(날짜), DAY(날짜)</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>HOUR(시간), MINUTE(시간), SECOND(시간)</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>LAST_DAY(날짜)</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>DATE_ADD(날짜, INRERVAL 증분값, DAY&#x2F;MONTH&#x2F;YEAR)</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>DATE_SUB(날짜, INTERVAL 감소값, DAY&#x2F;MONTH&#x2F;YEATR)</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>DATE_FROMAT(날짜, ’형식’)</td>
+<td>현재 날짜와 시간을 반환</td>
+<td></td>
+</tr>
+<tr>
+<td>현재 날짜를 반환</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>현재 시간을 반환</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>입력 날짜의 연도&#x2F;월&#x2F;일 부분을 반환</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>입력 시간의 시&#x2F;분&#x2F;초 부분을 반환</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>입력 날짜의 해당 월의 마지막 날짜를 반환</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>입력 날짜에서 증분값 만큼 일&#x2F;월&#x2F;년을 더한 날짜를 반환</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>입력 날짜에서 증분값 만큼 일&#x2F;월&#x2F;년을 뺀 날짜를 반환</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>입력 날짜를 형식에 맞게 변환하여 반환</td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+</li>
+<li><p>DATE_FROMAT 형식</p>
+<table>
+<thead>
+<tr>
+<th>형식</th>
+<th>표시 내용</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>%Y</td>
+<td>4자리 연도(2023)</td>
+</tr>
+<tr>
+<td>%y</td>
+<td>2자리 연도(23)</td>
+</tr>
+<tr>
+<td>%c</td>
+<td>월 (0 ~ 12)</td>
+</tr>
+<tr>
+<td>%m</td>
+<td>월 (00 ~ 12)</td>
+</tr>
+<tr>
+<td>%M</td>
+<td>월 (January ~ December)</td>
+</tr>
+<tr>
+<td>%b</td>
+<td>월 (Jan ~ Dec)</td>
+</tr>
+<tr>
+<td>%d</td>
+<td>일 (01 ~ 31)</td>
+</tr>
+<tr>
+<td>%e</td>
+<td>일 (0 ~ 31)</td>
+</tr>
+<tr>
+<td>%a</td>
+<td>주 (Sun ~ Sat)</td>
+</tr>
+</tbody></table>
+</li>
+</ul>
+<h1 id="2-저장-프로시저-stored-procedure"><a href="#2-저장-프로시저-stored-procedure" class="headerlink" title="2. 저장 프로시저 (stored procedure)"></a>2. 저장 프로시저 (stored procedure)</h1><hr>
+<aside>
+💡 **미리 작성하여** 데이터베이스 안에 저장한 **SQL 문장들의 묶음**
+→ 독입된 프로그램으로 데이터 베이스 안에 하나의 객체로 저장
+
+<ul>
+<li><p>장점: 최적화된 SQL문을 미리 데이터베이스에 작성해둘 수 있고 복잡한 SQL문을 전달할 필요가 없어 네트워크 부하가 줄어들며 여러 응용프로그램간의 공유가 가능함</p>
+</aside>
+</li>
+<li><p>명령문 형식</p>
+  <figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">PROCEDURE</span> 프로시저_이름</span><br><span class="line"><span class="keyword">BEGIN</span></span><br><span class="line">···</span><br><span class="line"><span class="keyword">SQL</span> 명령문;</span><br><span class="line">···</span><br><span class="line"><span class="keyword">END</span></span><br></pre></td></tr></table></figure>
+<ol>
+<li><p>삽입 · 수정 저장 프로시저 생성</p>
+ <figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">DELIMITER</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">PROCEDURE</span> InsterOrUpdateCourse (</span><br><span class="line">	<span class="keyword">IN</span> CourseNo <span class="type">VARCHAR</span>(<span class="number">4</span>),</span><br><span class="line">	<span class="keyword">IN</span> CourseName <span class="type">VARCHAR</span>(<span class="number">20</span>),</span><br><span class="line">	<span class="keyword">IN</span> CourseRoom <span class="type">CHAR</span>(<span class="number">3</span>),</span><br><span class="line">	<span class="keyword">IN</span> CourseDEPT <span class="type">VARCHAR</span>(<span class="number">20</span>),</span><br><span class="line">	<span class="keyword">IN</span> CourseCredit <span class="type">INT</span>)</span><br><span class="line"><span class="keyword">BEGIN</span></span><br><span class="line">	<span class="keyword">DECLARE</span> COUNT <span class="type">INT</span>;</span><br><span class="line">	<span class="keyword">SELECT</span> <span class="built_in">COUNT</span>(<span class="operator">*</span>) <span class="keyword">INTO</span> Count <span class="keyword">FROM</span> 과목 <span class="keyword">WHERE</span> 과목번호 <span class="operator">=</span> CourseNo;</span><br><span class="line">	IF (Count <span class="operator">=</span> <span class="number">0</span>) <span class="keyword">THEN</span></span><br><span class="line">		<span class="keyword">INSERT</span> <span class="keyword">INTO</span> 과목(과목번호, 이름, 강의실, 개설학과, 시수)</span><br><span class="line">		<span class="keyword">VALUES</span>(CourseNo, CourseName, CourseRoom, CourseDept, CourseCredit);</span><br><span class="line">	<span class="keyword">ELSE</span></span><br><span class="line">		<span class="keyword">UPDATE</span> 과목</span><br><span class="line">		<span class="keyword">SET</span> 이름 <span class="operator">=</span> CourseName, 강의실 <span class="operator">=</span> CourseRoom, 개설학과 <span class="operator">=</span> CourseDept, 시수 <span class="operator">=</span> CourseCredit</span><br><span class="line">		<span class="keyword">WHERE</span> 과목번호 <span class="operator">=</span> CourseNo;</span><br><span class="line">	<span class="keyword">END</span> IF;</span><br><span class="line"><span class="keyword">END</span> <span class="operator">/</span><span class="operator">/</span></span><br><span class="line">DELIMITER;</span><br></pre></td></tr></table></figure></li>
+</ol>
+</li>
+</ul>
+<h1 id="3-트리거"><a href="#3-트리거" class="headerlink" title="3. 트리거"></a>3. 트리거</h1><hr>
+<aside>
+💡 데이터 변경 등 명세된 이벤트 발생시 감지하여 자동 실행되는 사용자 정의 프로시저
+
+<ul>
+<li><p>INSERT, UPDATE, DELETE 명령문의 실행 직전·후 자동으로 호출되어 실행</p>
+</li>
+<li><p>보통 무결성 제약 조건을 유지하거나 업무 규칙 등을 적용하기 위해 사용</p>
+</aside>
+</li>
+<li><p>명령문 형식</p>
+  <figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"># 생성</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TRIGGER</span> 트리거_이름</span><br><span class="line">BEFORE<span class="operator">|</span>AFTER] [<span class="keyword">INSERT</span><span class="operator">|</span><span class="keyword">UPDATE</span><span class="operator">|</span><span class="keyword">DELETE</span>] <span class="keyword">ON</span> 테이블이름 <span class="keyword">FOR</span> <span class="keyword">EACH</span> <span class="type">ROW</span></span><br><span class="line"><span class="keyword">BEGIN</span></span><br><span class="line">···</span><br><span class="line">	<span class="keyword">SQL</span> 명령문;</span><br><span class="line">···</span><br><span class="line"><span class="keyword">END</span></span><br><span class="line"></span><br><span class="line"># 트리거 목록 확인</span><br><span class="line"><span class="keyword">SHOW</span> TRIGGERS;</span><br><span class="line"></span><br><span class="line"># 삭제</span><br><span class="line"><span class="keyword">DROP</span> <span class="keyword">TRIGGER</span> 트리거_이름;</span><br></pre></td></tr></table></figure>
+<ol>
+<li><p>트리거의 생성 및 실행</p>
+ <figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"># 생성</span><br><span class="line">DELIMITER <span class="operator">/</span><span class="operator">/</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TRIGGER</span> AfterInsertStu</span><br><span class="line">AFTER <span class="keyword">INSERT</span> <span class="keyword">ON</span> 학생 <span class="keyword">FOR</span> <span class="keyword">EACH</span> <span class="type">ROW</span></span><br><span class="line"><span class="keyword">BEGIN</span></span><br><span class="line">	IF (NEW.성별 <span class="operator">=</span> <span class="string">&#x27;남&#x27;</span>) <span class="keyword">THEN</span></span><br><span class="line">		 <span class="keyword">UPDATE</span> 남녀학생총수 <span class="keyword">SET</span> 인원수 <span class="operator">=</span> 인원수 <span class="operator">+</span> <span class="number">1</span> <span class="keyword">WHERE</span> 성별 <span class="operator">=</span> <span class="string">&#x27;남&#x27;</span>;</span><br><span class="line">	ELSEIF (NEW.성별 <span class="operator">=</span> <span class="string">&#x27;여&#x27;</span>) <span class="keyword">THEN</span></span><br><span class="line">		 <span class="keyword">UPDATE</span> 남녀학생총수 <span class="keyword">SET</span> 인원수 <span class="operator">=</span> 인원수 <span class="operator">+</span> <span class="number">1</span> <span class="keyword">WHERE</span> 성별 <span class="operator">=</span> <span class="string">&#x27;여&#x27;</span>;</span><br><span class="line">	<span class="keyword">END</span> IF;</span><br><span class="line"><span class="keyword">END</span></span><br><span class="line"><span class="operator">/</span><span class="operator">/</span></span><br><span class="line">DELIMITER;</span><br><span class="line"></span><br><span class="line"># 실행</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> 학생</span><br><span class="line"><span class="keyword">VALUES</span> (<span class="string">&#x27;s008&#x27;</span>, <span class="string">&#x27;최동석&#x27;</span>, <span class="string">&#x27;경기 수원&#x27;</span>, <span class="number">2</span>, <span class="number">26</span>, <span class="string">&#x27;남&#x27;</span>, <span class="string">&#x27;010-8888-6666&#x27;</span>, <span class="string">&#x27;컴퓨터&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> 학생;</span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> 남녀학생수</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>삭제</p>
+ <figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">DROP</span> <span class="keyword">TRIGGER</span> AfterInsertStu;</span><br></pre></td></tr></table></figure></li>
+</ol>
+</li>
+</ul>
+<h1 id="4-사용자-정의-함수"><a href="#4-사용자-정의-함수" class="headerlink" title="4. 사용자 정의 함수"></a>4. 사용자 정의 함수</h1><hr>
+<aside>
+💡 사용자가 직접 정의한 함수로 DBMS 안에 독립된 데이터베이스 객체로 저장
+
+<ul>
+<li><p>SELECT문이나 프로시저 안에서 호출되어 특정 기능을 수행하고 결과 값을 반환하는 용도로 사용</p>
+<ul>
+<li>스칼라 함수는 하나의 값 또는 NULL을 반환</li>
+<li>테이블 함수는 각 행이 하나 이상의 열로 구성된 테이블을 반환</aside></li>
+</ul>
+</li>
+<li><p>명령문 형식</p>
+  <figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"># 생성</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">FUNCTION</span> 함수명(매개변수 매개변수_자료형)</span><br><span class="line"><span class="keyword">RETURNS</span> 반환값_자료형</span><br><span class="line"><span class="keyword">BEGIN</span></span><br><span class="line">	···</span><br><span class="line">	<span class="keyword">SQL</span> 명령문;</span><br><span class="line">	··</span><br><span class="line">	<span class="keyword">RETURN</span> 반환값;</span><br><span class="line"><span class="keyword">END</span></span><br><span class="line"></span><br><span class="line"># 해당하는 사용자 정의 함수 정보 확인</span><br><span class="line"><span class="keyword">SHOW</span> <span class="keyword">CREATE</span> <span class="keyword">FUNCTION</span> 사용자정의함수_이름;</span><br><span class="line"></span><br><span class="line"># 삭제</span><br><span class="line"><span class="keyword">DROP</span> <span class="keyword">FUNCTION</span> 사용자정의함수_이름</span><br></pre></td></tr></table></figure>
+<ol>
+<li><p>생성</p>
+ <figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"># <span class="string">&#x27;수강&#x27;</span> 테이블에서 학생의 학점이 A이면 <span class="string">&#x27;최우수&#x27;</span>, B이면 <span class="string">&#x27;우수&#x27;</span>, C이면 <span class="string">&#x27;보통&#x27;</span> D나 F이면 <span class="string">&#x27;미흡&#x27;</span>으로 변환하여 반환하는 사용자 정의 함수를 작성하시오.</span><br><span class="line">DELIMITER <span class="operator">/</span><span class="operator">/</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">FUNCTION</span> Fn_Grade(grade <span class="type">CHAR</span>(<span class="number">1</span>))</span><br><span class="line"><span class="keyword">RETURNS</span> <span class="type">VARCHAR</span>(<span class="number">10</span>)</span><br><span class="line"><span class="keyword">BEGIN</span></span><br><span class="line">    <span class="keyword">DECLARE</span> ret_grade <span class="type">VARCHAR</span>(<span class="number">10</span>);</span><br><span class="line">    IF (grade <span class="operator">=</span> <span class="string">&#x27;A&#x27;</span>) <span class="keyword">THEN</span></span><br><span class="line">        <span class="keyword">SET</span> ret_grade <span class="operator">=</span> <span class="string">&#x27;최우수&#x27;</span>;</span><br><span class="line">    ELSEIF (grade <span class="operator">=</span> <span class="string">&#x27;B&#x27;</span>) <span class="keyword">THEN</span></span><br><span class="line">        <span class="keyword">SET</span> ret_grade <span class="operator">=</span> <span class="string">&#x27;우수&#x27;</span>;</span><br><span class="line">    ELSEIF (grade <span class="operator">=</span> <span class="string">&#x27;C&#x27;</span>) <span class="keyword">THEN</span></span><br><span class="line">        <span class="keyword">SET</span> ret_grade <span class="operator">=</span> <span class="string">&#x27;보통&#x27;</span>;</span><br><span class="line">    ELSEIF (grade <span class="operator">=</span> <span class="string">&#x27;D&#x27;</span> <span class="keyword">OR</span> grade <span class="operator">=</span> <span class="string">&#x27;F&#x27;</span>) <span class="keyword">THEN</span></span><br><span class="line">        <span class="keyword">SET</span> ret_grade <span class="operator">=</span> <span class="string">&#x27;미흡&#x27;</span>;</span><br><span class="line">    <span class="keyword">END</span> IF;</span><br><span class="line">    <span class="keyword">RETURN</span> ret_grade;</span><br><span class="line"><span class="keyword">END</span></span><br><span class="line"><span class="operator">/</span><span class="operator">/</span></span><br><span class="line">DELIMITER ;</span><br><span class="line"></span><br><span class="line"># 정보 확인</span><br><span class="line"><span class="keyword">SHOW</span> <span class="keyword">CREATE</span> <span class="keyword">FUNCTION</span> Fn_Grade;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>적용</p>
+ <figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"># <span class="string">&#x27;수강&#x27;</span> 테이블에서 전체 학생의 <span class="string">&#x27;학번&#x27;</span>, <span class="string">&#x27;과목번호&#x27;</span>, <span class="string">&#x27;평가학점&#x27;</span>과 한글로 변환된 <span class="string">&#x27;평가등급&#x27;</span>을 검색하시오(<span class="string">&#x27;Fn_Grade()&#x27;</span> 사용자 정의 함수를 활용).</span><br><span class="line"><span class="keyword">SELECT</span> 학번, 과목번호, 평가학점, Fn_Grade(평가학점) <span class="keyword">as</span> <span class="string">&#x27;평가 등급&#x27;</span> <span class="keyword">FROM</span> 수강;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>삭제</p>
+ <figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"># 사용자 정의 함수 <span class="string">&#x27;Fn_Grade()&#x27;</span> 삭제</span><br><span class="line"><span class="keyword">DROP</span> <span class="keyword">FUNCTION</span> Fn_Grade;</span><br></pre></td></tr></table></figure></li>
+</ol>
+</li>
+</ul>
+<h2 id="4-1-저장-프로시저-트리거-사용자-정의-함수의-비교"><a href="#4-1-저장-프로시저-트리거-사용자-정의-함수의-비교" class="headerlink" title="4.1. 저장 프로시저, 트리거, 사용자 정의 함수의 비교"></a>4.1. 저장 프로시저, 트리거, 사용자 정의 함수의 비교</h2><hr>
+<ol>
+<li>저장 프로시저<ul>
+<li>여러 응용 프로그램 사이에 공유함으로써 처리의 일관성 향상과 보안 강화</li>
+<li>전송되는 SQL 명령문의 양을 줄이고 미리 컴파일된 코드를 호출함으로써 반복적인 처리시 성능 향상</li>
+</ul>
+</li>
+<li>트리거<ul>
+<li>복잡한 데이터 무결성을 강화, 다양한 데이터 처리 업무 규칙을 구현</li>
+<li>성능이 다소 저하될 수 있음</li>
+</ul>
+</li>
+<li>사용자 정의 함수<ul>
+<li>특정 값뿐만 아니라 테이블도 반환할 수 있어 제한된 SQL 명령문의 기능을 확장시키고 명령문 작성의 편의성을 향상시킴</li>
+</ul>
+</li>
+</ol>
+<p><img src="/7%E1%84%8C%E1%85%A1%E1%86%BC%20SQL%20%E1%84%8B%E1%85%B3%E1%86%BC%E1%84%8B%E1%85%AD%E1%86%BC%2072dba5ea64af432b8e6b6406f20b9afc/Untitled.png" alt="Untitled"></p>
+<h1 id="5-트랜잭션"><a href="#5-트랜잭션" class="headerlink" title="5. 트랜잭션"></a>5. 트랜잭션</h1><hr>
+<aside>
+💡 **한 묶음**으로 처리되어야 하는 SQL 명령문들의 집합
+→ 트랜잭션에 속한 SQL 명령문들은 모두 정상 처리되어야 함께 완료되며 하나의 명령문이라도 **오류가 발생하면** 전체를 취소함
+
+</aside>
+
+<ul>
+<li><p>커밋(commit): 정상 종료</p>
+<ul>
+<li>트랜잭션의 실행 결과를 데이터베이스에 최종적으로 반영하는 것</li>
+<li>임시로 실행 처리한 트랜잭션의 실행 결과를 실제 데이터베이스에 반영하는 명령</li>
+</ul>
+</li>
+<li><p>롤백(rollback)</p>
+<ul>
+<li>실행 결과를 <strong>반영하지 않고</strong> 취소하여 원래 상태로 되돌리는 것</li>
+<li>데이터베이스에 반영되지 않은 임시 실행 결과</li>
+</ul>
+</li>
+<li><p>트랜잭션의 ACID 특성</p>
+<ol>
+<li>원자성(Atomicity): 트랜잭션 안의 SQL 명령문을 모두 <strong>성공적으로 실행하여 완료</strong>하거나 아니면 모두 철회화여 무효화해야함을 의미<ul>
+<li><strong>‘전부 혹은 전무(all or nothing)’</strong> 실행 규칙을 적용</li>
+<li>만약 장애가 발생한다면 장애 발생 시점에 이미 정상 완료되어 커밋된 트랜잭션은 제외라고 완료되지 않은 트랜잭션은 모두 취소 시킴</li>
+</ul>
+</li>
+<li>일관성(Consistency): 데이터베이스가 트랜잭션 실행전의 일관된 상태에서 트랜잭션 실행 후애도 또 다른 일관된 상태로 전환되어야함을 의미</li>
+<li>고립성(Isolation): 커밋될 떄까지 트랜잭션이 수행한 임시 실행 결과가 다른 트랜잭션에게 공개되지 않아야함을 의미</li>
+<li>지속성(Durabiluty): 일단 트랜잭션이 커밋되면 그 트랜잭션의 실행 결과는 장애가 발생하더라도 보존되어야함을 의미</li>
+</ol>
+</li>
+<li><p>트랜잭션 지원 DBMS 모듈</p>
+<ol>
+<li>동시성 제어(concurrency control) 모듈<ul>
+<li>동시에 실행되는 트랜잭션 간의 간섭을 제어</li>
+<li>최종적으로 각 트랜잭션이 순차적으로 실행한 결과와 동일한 고립성 결과를 보장하고 트랜잭션 실행 이전과 이후의 데이터베이스 일관성이 항상 유지되도록 함</li>
+<li>대표적 동시성 제어 기법은 락킹(locking)</li>
+</ul>
+</li>
+<li>회복(recovery) 모듈<ul>
+<li>완전한 트랜잭션 결과의 복구를 보장</li>
+<li>장애 발생 시 트랜잭션 실행의 원자성을 보장하고 커밋된 트랜잭션의 결과는 반드시 데이터베이스에 반영되도록 지속성을 지원</li>
+<li>대표적인 회복 기법은 로깅(logging)</li>
+</ul>
+</li>
+</ol>
+<p>  <img src="/7%E1%84%8C%E1%85%A1%E1%86%BC%20SQL%20%E1%84%8B%E1%85%B3%E1%86%BC%E1%84%8B%E1%85%AD%E1%86%BC%2072dba5ea64af432b8e6b6406f20b9afc/Untitled%201.png" alt="Untitled">
+  </p>
+</li>
+<li><p>트랜잭션의 종류</p>
+<p>  <img src="/7%E1%84%8C%E1%85%A1%E1%86%BC%20SQL%20%E1%84%8B%E1%85%B3%E1%86%BC%E1%84%8B%E1%85%AD%E1%86%BC%2072dba5ea64af432b8e6b6406f20b9afc/Untitled%202.png" alt="Untitled"></p>
+<ol>
+<li><p>명시적 트랜잭션 (’사용자 트랜잭션’ or ‘수동 트랜잭션’): 트랜잭션의 시작과 끝을 사용자가 직접 명시적으로 지정하는 트랜잭션</p>
+ <figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">START</span> TRANSACTION; # 직접 트랜잭션의 시작을 지시</span><br><span class="line">    ···</span><br><span class="line">		<span class="keyword">SQL</span> 명령문;</span><br><span class="line">		···</span><br><span class="line">&#123;<span class="keyword">COMMIT</span><span class="operator">|</span><span class="keyword">ROLLBACK</span>&#125;;</span><br><span class="line"># <span class="keyword">COMMIT</span>: 트랜잭션의 모든 처리 결과의 정상적 처리를 확장하는 명령어로 변경 내용을 모두 실제 데이테베이스에 영구적으로 반영</span><br><span class="line"># <span class="keyword">ROLLBACK</span>: 작업 중 장애나 문제가 발생하여 트랜잭션의 처리 과정에서 발생한 변경 내용을 모두 취소하는 명령어로 트랜잭션 시작 치전의 원래 상태로 되돌림</span><br><span class="line"></span><br><span class="line"># 예</span><br><span class="line"><span class="keyword">START</span> TRANSACTION;</span><br><span class="line">    <span class="keyword">DELETE</span> <span class="keyword">FROM</span> 학생 <span class="keyword">WHERE</span> 성별 <span class="operator">=</span> <span class="string">&#x27;남&#x27;</span>;</span><br><span class="line">    <span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> 학생;</span><br><span class="line"><span class="keyword">ROLLBACK</span>;</span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> 학생;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>자동완료 트랜잭션: SQL문 하나를 독립된 하나의 트랜잭션으로 자동 정의하고 SQL문의 실행 결과에 따라 자동으로 커밋 또는 롤백하는 트랜잭션</p>
+<ul>
+<li>기본 모드의 트랜잭션, ‘시스템 트랜잭션’</li>
+<li>DBMS가 각 SQL 문장 앞뒤에 START TRANSACTION문과 COMMIT문 or ROLLBACK문을 자동으로 붙여 실행</li>
+</ul>
+ <figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> @<span class="variable">@AUTOCOMMIT</span>; # @<span class="variable">@AUTOCOMMIT</span>: 트랜잭션 모드 설정 값을 저장하고 있는 시스템 변수</span><br><span class="line"><span class="keyword">SET</span> AUTOCOMMIT <span class="operator">=</span> <span class="number">1</span>; # 자동완료 모드가 설정됨</span><br><span class="line"></span><br><span class="line"># 예</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> 과목 <span class="keyword">VALUES</span> (<span class="string">&#x27;c007&#x27;</span>, <span class="string">&#x27;영어회화&#x27;</span>, <span class="string">&#x27;333&#x27;</span>, <span class="string">&#x27;교양학부&#x27;</span>, <span class="number">3</span>);</span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> 과목;</span><br><span class="line"><span class="keyword">ROLLBACK</span>;</span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> 과목;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>수동완료 트랜잭션 (암시적(implicit) 트랜잭션): 트랜잭션의 끝만 사용자가 직접 명시적으로 지정하는 트랜잭션</p>
+<ul>
+<li><p>다음 명령문 실행시 <code>START TRANSACTION</code> 명령문 없이 트랜잭션이 자동 시작</p>
+<p>  <code>CREATE, ALTER, INSERT, UPDATE, DELECT, SELECT, DROP, FETCH, GRANT, OPEN, REVOKE, TRUNCATE TABLE</code></p>
+  <figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> @<span class="variable">@AUTOCOMMIT</span>; # @<span class="variable">@AUTOCOMMIT</span>: 트랜잭션 모드 설정 값을 저장하고 있는 시스템 변수</span><br><span class="line"><span class="keyword">SET</span> AUTOCOMMIT <span class="operator">=</span> <span class="number">0</span>; # 수동완료 모드가 설정됨</span><br><span class="line"></span><br><span class="line"># 예</span><br><span class="line"><span class="keyword">DELETE</span> <span class="keyword">FROM</span> 과목 <span class="keyword">WHERE</span> 이름 <span class="operator">=</span> <span class="string">&#x27;연극학개론&#x27;</span>;</span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> 과목;</span><br><span class="line">    <span class="keyword">INSERT</span> <span class="keyword">INTO</span> 과목 <span class="keyword">VALUES</span> (<span class="string">&#x27;c008&#x27;</span>, <span class="string">&#x27;독서와토론&#x27;</span>, <span class="string">&#x27;111&#x27;</span>, <span class="string">&#x27;교양학부&#x27;</span>, <span class="number">2</span>);</span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> 과목;</span><br><span class="line"><span class="keyword">ROLLBACK</span>;</span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> 과목;</span><br><span class="line"><span class="keyword">SET</span> AUTOCOMMIT <span class="operator">=</span> <span class="number">1</span>; # 자동완료 모드 설정</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+</ol>
+</li>
+<li><p>트랜잭션과 로그</p>
+<ul>
+<li><p>DBMS 트랜잭션 처리 과정</p>
+<p>  <img src="/7%E1%84%8C%E1%85%A1%E1%86%BC%20SQL%20%E1%84%8B%E1%85%B3%E1%86%BC%E1%84%8B%E1%85%AD%E1%86%BC%2072dba5ea64af432b8e6b6406f20b9afc/Untitled%203.png" alt="Untitled"></p>
+</li>
+<li><p>트랜잭션 로그</p>
+<ul>
+<li><p>로그 데이터베이스에 기록되는 트랜잭션 로그의 기본 구조: 로그 일련번호를 포함하여 트랜잭션_식별자와 START, COMMIT, ROLLBACK, 명령문 유형과 변경 내용 등을 기록</p>
+<p>  <code>[트랜잭션_식별자, 로그_유형, 데이터_항목, 변경전_값, 변경후_값]</code></p>
+</li>
+</ul>
+</li>
+<li><p>체크 포인트</p>
+<ul>
+<li>특정 시점까지의 데이터 버퍼 안의 모든 변경 내용을 데이터베이스 파일에 물리적으로 저장하는 시점</li>
+<li>장애 발생시 복구 작업량을 줄이기 위해서 주기적으로 동기화를 수행</li>
+<li>체크 포인트 역시 로그에 기록</li>
+<li>체크 포인트 시점에는 버퍼 캐시 안의 데이터와 디스크 안의 저장 데이터베이스가 100% 일치하는 동기화가 수행<ul>
+<li>체크 포인트가 트랜잭션 로그에 기록되는 순간 모든 데이터 버퍼 안의 데이터들이 데이터베이스 파일에 쓰여짐</li>
+<li>회복 대상을 마지막 체크 포인트 시점 이후의 로그 내용으로만 제한시킴</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>로그를 이용한 회복기법</p>
+<ul>
+<li><p>장애 발생 시점에 이미 커밋된 트랜잭션의 변경 내용은 로그를 이용하여 반드시 데이터베이스에 반영함. 반면 커밋되지 못하고 중단된 트랜잭션의 실행 결과는 철회되어야 함</p>
+</li>
+<li><p>트랜잭션 로그를 이요한 회복 기법의 적용 과정</p>
+<ol>
+<li>회복은 장애 발생 시점에 중단된 트랜잭션의 작업 내용을 롤백. 즉, 철회시키기 위해서 로그 기록의 역순으로 이전 상태로 되돌리는 취소 작업을 진행한다.</li>
+<li>마지막 체크 포인트 이후의 커밋되지 않은 트랜잭션의 로그 내용들은 모두 롤백. 즉, 순서의 역순으로 취소된다.</li>
+<li>반대로, 장애 발생 시점까지 정상적으로 종료된 트랜잭션의 실행 결과를 보장하기 위해서는 로그 기록의 순서대로 다시 실행하는 재실행 작업을 진행한다.</li>
+<li>마지막 체크 포인트 이후의 커밋된 트랜잭션의 로그 내용들은 모두 롤포워드. 즉, 로그 순서대로 재실행된다.</li>
+</ol>
+</li>
+<li><p>예</p>
+  <figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"># 반영</span><br><span class="line">[T1, <span class="keyword">START</span>]</span><br><span class="line">[T1, <span class="keyword">UPDATE</span>, 학생(김연아), 중간성적, <span class="number">88</span>, <span class="number">99</span>]</span><br><span class="line">[T2, <span class="keyword">START</span>]</span><br><span class="line">[T2, <span class="keyword">UPDATE</span>, 학생(이승엽), 기말성적, <span class="number">89</span>, <span class="number">93</span>]</span><br><span class="line">[CHECKPOINT]</span><br><span class="line">#소실</span><br><span class="line">[T2, <span class="keyword">UPDATE</span>, 학생(홍길동), 기말성적, <span class="number">77</span>, <span class="number">66</span>]</span><br><span class="line">[T1, <span class="keyword">UPDATE</span>, 학생(이영애), 중간성적, <span class="number">91</span>, <span class="number">97</span>]</span><br><span class="line">[T1, <span class="keyword">COMMIT</span>]</span><br><span class="line"><span class="operator">~</span><span class="operator">~</span><span class="operator">~</span><span class="operator">~</span><span class="operator">~</span><span class="operator">~</span><span class="operator">~</span><span class="operator">~</span><span class="operator">~</span><span class="operator">~</span><span class="operator">~</span><span class="operator">~</span><span class="operator">~</span> 장애 발생</span><br></pre></td></tr></table></figure>
+<p>  <img src="/7%E1%84%8C%E1%85%A1%E1%86%BC%20SQL%20%E1%84%8B%E1%85%B3%E1%86%BC%E1%84%8B%E1%85%AD%E1%86%BC%2072dba5ea64af432b8e6b6406f20b9afc/Untitled%204.png" alt="Untitled"></p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>트랜잭션과 로크</p>
+<ul>
+<li>로크 잠금: <strong>다중 사용자 환경</strong>에서 동시 접근을 올바르게 제어하기 위한 대표적 기법</li>
+</ul>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+      
+
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023-11-06-%EC%A4%91%EC%B2%A9%20%20%EC%84%A0%EC%96%B8%20%EB%B0%8F%20%EC%9D%B5%EB%AA%85%20%EA%B0%9D%EC%B2%B4/" rel="prev" title="abc">
+      <i class="fa fa-chevron-left"></i> abc
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/Algorithm/Baekjoon/2023-11-09-(Java%7CPython)%20%EB%B0%B1%EC%A4%80%201247%20%EB%B6%80%ED%98%B8/" rel="next" title="(Java|Python) 백준 1247 부호">
+      (Java|Python) 백준 1247 부호 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          목차
+        </li>
+        <li class="sidebar-nav-overview">
+          흝어보기
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#7%EC%9E%A5-SQL-%EC%9D%91%EC%9A%A9"><span class="nav-text">7장 SQL 응용</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%EB%82%B4%EC%9E%A5%ED%95%A8%EC%88%98"><span class="nav-text">1. 내장함수</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%EC%A0%80%EC%9E%A5-%ED%94%84%EB%A1%9C%EC%8B%9C%EC%A0%80-stored-procedure"><span class="nav-text">2. 저장 프로시저 (stored procedure)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%ED%8A%B8%EB%A6%AC%EA%B1%B0"><span class="nav-text">3. 트리거</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%EC%82%AC%EC%9A%A9%EC%9E%90-%EC%A0%95%EC%9D%98-%ED%95%A8%EC%88%98"><span class="nav-text">4. 사용자 정의 함수</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#4-1-%EC%A0%80%EC%9E%A5-%ED%94%84%EB%A1%9C%EC%8B%9C%EC%A0%80-%ED%8A%B8%EB%A6%AC%EA%B1%B0-%EC%82%AC%EC%9A%A9%EC%9E%90-%EC%A0%95%EC%9D%98-%ED%95%A8%EC%88%98%EC%9D%98-%EB%B9%84%EA%B5%90"><span class="nav-text">4.1. 저장 프로시저, 트리거, 사용자 정의 함수의 비교</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%ED%8A%B8%EB%9E%9C%EC%9E%AD%EC%85%98"><span class="nav-text">5. 트랜잭션</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Mingyu Park</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-name">포스트</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">카테고리</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Mingyu Park</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="Symbols count total">11k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="Reading time total">39 mins.</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<script>
+  function loadCount() {
+    var d = document, s = d.createElement('script');
+    s.src = 'https://dev-note-3.disqus.com/count.js';
+    s.id = 'dsq-count-scr';
+    (d.head || d.body).appendChild(s);
+  }
+  // defer loading until the whole page loading is completed
+  window.addEventListener('load', loadCount, false);
+</script>
+<script>
+  var disqus_config = function() {
+    this.page.url = "https://eht3r.github.io/2023-11-07-7%E1%84%8C%E1%85%A1%E1%86%BC%20SQL%20%E1%84%8B%E1%85%B3%E1%86%BC%E1%84%8B%E1%85%AD%E1%86%BC/";
+    this.page.identifier = "/2023-11-07-7장 SQL 응용/";
+    this.page.title = "7장 SQL 응용";
+    };
+  NexT.utils.loadComments(document.querySelector('#disqus_thread'), () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://dev-note-3.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+</body>
+</html>

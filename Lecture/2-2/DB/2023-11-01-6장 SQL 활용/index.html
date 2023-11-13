@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"eht3r.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"hide","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":true,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="1. SQL 데이터 정의문 &#x3D; DDL 1) 테이블 생성 CREATE문CREATE TABLE 테이블_이름	(&#123; 열_이름 데이터 유형 [NULL|NOT NULL] [DEFAULT 기본 값], &#125;+		 [PRIMARY KEY (열_이름_리스트),]	 &#123; [UNIQUE (열_이름_리스트),])		 &#123; &#123;FORE">
+<meta property="og:type" content="article">
+<meta property="og:title" content="6장 SQL 활용">
+<meta property="og:url" content="https://eht3r.github.io/Lecture/2-2/DB/2023-11-01-6%E1%84%8C%E1%85%A1%E1%86%BC%20SQL%20%E1%84%92%E1%85%AA%E1%86%AF%E1%84%8B%E1%85%AD%E1%86%BC/index.html">
+<meta property="og:site_name" content="Dev.note">
+<meta property="og:description" content="1. SQL 데이터 정의문 &#x3D; DDL 1) 테이블 생성 CREATE문CREATE TABLE 테이블_이름	(&#123; 열_이름 데이터 유형 [NULL|NOT NULL] [DEFAULT 기본 값], &#125;+		 [PRIMARY KEY (열_이름_리스트),]	 &#123; [UNIQUE (열_이름_리스트),])		 &#123; &#123;FORE">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:image" content="https://eht3r.github.io/images/Lecture/2-2/DB/6%EC%9E%A5/6%EC%9E%A5.png">
+<meta property="og:image" content="https://eht3r.github.io/images/Lecture/2-2/DB/6%EC%9E%A5/6%EC%9E%A5%201.png">
+<meta property="article:published_time" content="2023-10-31T15:00:00.000Z">
+<meta property="article:modified_time" content="2023-11-12T15:59:50.897Z">
+<meta property="article:author" content="Mingyu Park">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://eht3r.github.io/images/Lecture/2-2/DB/6%EC%9E%A5/6%EC%9E%A5.png">
+
+<link rel="canonical" href="https://eht3r.github.io/Lecture/2-2/DB/2023-11-01-6%E1%84%8C%E1%85%A1%E1%86%BC%20SQL%20%E1%84%92%E1%85%AA%E1%86%AF%E1%84%8B%E1%85%AD%E1%86%BC/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'ko'
+  };
+</script>
+
+  <title>6장 SQL 활용 | Dev.note</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Dev.note</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">앱과 인공지능에 관심이 많은 대학생 개발자</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>홈</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>태그</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>카테고리</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>아카이브</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Eht3r" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="ko">
+    <link itemprop="mainEntityOfPage" href="https://eht3r.github.io/Lecture/2-2/DB/2023-11-01-6%E1%84%8C%E1%85%A1%E1%86%BC%20SQL%20%E1%84%92%E1%85%AA%E1%86%AF%E1%84%8B%E1%85%AD%E1%86%BC/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Mingyu Park">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Dev.note">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          6장 SQL 활용
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">작성일</span>
+
+              <time title="Post created: 2023-11-01 00:00:00" itemprop="dateCreated datePublished" datetime="2023-11-01T00:00:00+09:00">2023-11-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Updated at: 2023-11-13 00:59:50" itemprop="dateModified" datetime="2023-11-13T00:59:50+09:00">2023-11-13</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Lecture/" itemprop="url" rel="index"><span itemprop="name">Lecture</span></a>
+                </span>
+                  , 
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Lecture/2-2/" itemprop="url" rel="index"><span itemprop="name">2-2</span></a>
+                </span>
+                  , 
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Lecture/2-2/DB/" itemprop="url" rel="index"><span itemprop="name">DB</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Disqus: </span>
+    
+    <a title="disqus" href="/Lecture/2-2/DB/2023-11-01-6%E1%84%8C%E1%85%A1%E1%86%BC%20SQL%20%E1%84%92%E1%85%AA%E1%86%AF%E1%84%8B%E1%85%AD%E1%86%BC/#disqus_thread" itemprop="discussionUrl">
+      <span class="post-comments-count disqus-comment-count" data-disqus-identifier="/Lecture/2-2/DB/2023-11-01-6장 SQL 활용/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  <br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>1.3k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>5 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="1-SQL-데이터-정의문-DDL"><a href="#1-SQL-데이터-정의문-DDL" class="headerlink" title="1. SQL 데이터 정의문 &#x3D; DDL"></a>1. SQL 데이터 정의문 &#x3D; DDL</h1><hr>
+<h2 id="1-테이블-생성-CREATE문"><a href="#1-테이블-생성-CREATE문" class="headerlink" title="1) 테이블 생성 CREATE문"></a>1) 테이블 생성 CREATE문</h2><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> 테이블_이름</span><br><span class="line">	(&#123; 열_이름 데이터 유형 [<span class="keyword">NULL</span><span class="operator">|</span><span class="keyword">NOT</span> <span class="keyword">NULL</span>] [<span class="keyword">DEFAULT</span> 기본 값], &#125;<span class="operator">+</span></span><br><span class="line">		 [<span class="keyword">PRIMARY</span> KEY (열_이름_리스트),]</span><br><span class="line">	 &#123; [<span class="keyword">UNIQUE</span> (열_이름_리스트),])</span><br><span class="line">		 &#123; &#123;<span class="keyword">FOREIGN</span> KEY (열_이름_리스트) <span class="keyword">REFERENCES</span> 테이블_이름 (열_이름_리스트),]&#125;</span><br><span class="line">	);</span><br><span class="line"></span><br><span class="line"># 태이블 구조 출력</span><br><span class="line"><span class="keyword">DESC</span> 테이블_이름;</span><br><span class="line"></span><br><span class="line"># <span class="string">&#x27;과목2&#x27;</span> 테이블 생성</span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> 과목<span class="number">2</span></span><br><span class="line">    (과목번호 <span class="type">char</span>(<span class="number">4</span>) <span class="keyword">not</span> <span class="keyword">null</span> <span class="keyword">primary</span> key,❶</span><br><span class="line">    이름 <span class="type">varchar</span>(<span class="number">20</span>) <span class="keyword">not</span> <span class="keyword">null</span>,❷</span><br><span class="line">    강의실 <span class="type">char</span>(<span class="number">5</span>) <span class="keyword">not</span> <span class="keyword">null</span>,</span><br><span class="line">    개설학과 <span class="type">varchar</span>(<span class="number">20</span>) <span class="keyword">not</span> <span class="keyword">null</span>,</span><br><span class="line">    시수 <span class="type">int</span> <span class="keyword">not</span> <span class="keyword">null</span>);❸</span><br><span class="line"></span><br><span class="line"># <span class="string">&#x27;학생 2&#x27;</span> 테이블 생성</span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> 학생<span class="number">2</span></span><br><span class="line">    (학번 <span class="type">char</span>(<span class="number">4</span>) <span class="keyword">not</span> <span class="keyword">null</span>,</span><br><span class="line">    이름 <span class="type">varchar</span>(<span class="number">20</span>) <span class="keyword">not</span> <span class="keyword">null</span>,</span><br><span class="line">    주소 <span class="type">varchar</span>(<span class="number">50</span>) <span class="keyword">default</span> <span class="string">&#x27;미정&#x27;</span>,❹</span><br><span class="line">    학년 <span class="type">int</span> <span class="keyword">not</span> <span class="keyword">null</span>,</span><br><span class="line">    나이 <span class="type">int</span> <span class="keyword">null</span>,</span><br><span class="line">    성별 <span class="type">char</span>(<span class="number">1</span>) <span class="keyword">not</span> <span class="keyword">null</span>,</span><br><span class="line">    휴대폰번호 <span class="type">char</span>(<span class="number">13</span>) <span class="keyword">null</span>,</span><br><span class="line">    소속학과 <span class="type">varchar</span>(<span class="number">20</span>) <span class="keyword">null</span>,</span><br><span class="line">    <span class="keyword">primary</span> key (학번),❺</span><br><span class="line">    <span class="keyword">unique</span> (휴대폰번호));❻</span><br><span class="line"></span><br><span class="line"># <span class="string">&#x27;수강 2&#x27;</span> 테이블 생성</span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> 수강<span class="number">2</span></span><br><span class="line">    (학번 <span class="type">char</span>(<span class="number">6</span>) <span class="keyword">not</span> <span class="keyword">null</span>,</span><br><span class="line">    과목번호 <span class="type">char</span>(<span class="number">4</span>) <span class="keyword">not</span> <span class="keyword">null</span>,</span><br><span class="line">    신청날짜 <span class="type">date</span> <span class="keyword">not</span> <span class="keyword">null</span>,</span><br><span class="line">    중간성적 <span class="type">int</span> <span class="keyword">null</span> <span class="keyword">default</span> <span class="number">0</span>,</span><br><span class="line">    기말성적 <span class="type">int</span> <span class="keyword">null</span> <span class="keyword">default</span> <span class="number">0</span>,</span><br><span class="line">    평가학점 <span class="type">char</span>(<span class="number">1</span>) <span class="keyword">null</span>,</span><br><span class="line">    <span class="keyword">primary</span> key (학번, 과목번호),❽</span><br><span class="line">    <span class="keyword">foreign</span> key (학번) <span class="keyword">references</span> 학생<span class="number">2</span>(학번),❾</span><br><span class="line">    <span class="keyword">foreign</span> key (과목번호) <span class="keyword">references</span> 과목<span class="number">2</span>(과목번호));❼❿</span><br></pre></td></tr></table></figure>
+
+<h3 id="데이터-유형"><a href="#데이터-유형" class="headerlink" title="데이터 유형"></a>데이터 유형</h3><table>
+<thead>
+<tr>
+<th>분류</th>
+<th>데이터 유형</th>
+<th>저장유형</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>문자형</td>
+<td>CHAR(길이)<br>VARCHAR(길이)<br>TEXT</td>
+<td>고정길이 문자열, 남은 공간은 공백으로 채움<br>가변길이 문자열, 남은 공간이 없음<br>긴 문자열(255자 이상)</td>
+</tr>
+<tr>
+<td>정수형</td>
+<td>INT<br>SMALLINT</td>
+<td>소수점이 없는 기본 정수형<br>소수점이 없는 작은 정수형</td>
+</tr>
+<tr>
+<td>실수형</td>
+<td>DECIMAL(전체길이, 소수점 이하 길이)<br>FLOAT(전체길이, 소수점 이하길이)<br>DOUBLE(전체길이, 소수점 이하 길이)</td>
+<td>고정 소수점을 포함한 실수<br>단정도 부동 소수점 실수<br>배정도 부동 소수점 실수</td>
+</tr>
+<tr>
+<td>날짜형</td>
+<td>DATE<br>DATETIME<br>TIME<br>YEAR</td>
+<td>날짜(연도-월-일)<br>날짜시간(연도-월-일 시:분:초)<br>시간(시:분:초)<br>날짜(연도)</td>
+</tr>
+</tbody></table>
+<h3 id="무결성-제약-조건의-동작-확인"><a href="#무결성-제약-조건의-동작-확인" class="headerlink" title="무결성 제약 조건의 동작 확인"></a>무결성 제약 조건의 동작 확인</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> 과목<span class="number">2</span>(과목번호, 이름, 강의실, 개설학과)</span><br><span class="line"><span class="keyword">VALUES</span> (<span class="string">&#x27;c111&#x27;</span>, <span class="string">&#x27;database&#x27;</span>, A<span class="number">-123</span>, <span class="string">&#x27;산업공학&#x27;</span>);</span><br><span class="line"><span class="comment">-- ❶ CHAR(5) 유형 오류(‘강의실’열의 문자형 유형에 불일치함)</span></span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> 과목<span class="number">2</span>(과목번호, 이름, 강의실, 개설학과, 시수)</span><br><span class="line"><span class="keyword">VALUES</span> (<span class="string">&#x27;c111&#x27;</span>, <span class="string">&#x27;database&#x27;</span>, <span class="string">&#x27;A-123&#x27;</span>, <span class="string">&#x27;산업공학&#x27;</span>) ;</span><br><span class="line"><span class="comment">-- ❷ NULL 제약 조건 오류(‘시수’열이 NULL을 허용하지 않음)</span></span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> 과목<span class="number">2</span>(과목번호, 이름, 강의실, 개설학과, 시수)</span><br><span class="line"><span class="keyword">VALUES</span> (<span class="string">&#x27;c111&#x27;</span>, <span class="string">&#x27;database&#x27;</span>, <span class="string">&#x27;A-123&#x27;</span>, <span class="string">&#x27;산업공학&#x27;</span>, <span class="number">3</span>) ;</span><br><span class="line"><span class="comment">-- ❸ 정상 수행</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> 학생<span class="number">2</span>(학번, 이름, 학년, 나이, 성별, 휴대폰번호, 소속학과)</span><br><span class="line"><span class="keyword">VALUES</span> (<span class="string">&#x27;s111&#x27;</span>, <span class="string">&#x27;박태환&#x27;</span>, <span class="number">4</span>, <span class="keyword">NULL</span>, <span class="string">&#x27;남&#x27;</span>, <span class="string">&#x27;010-1111-1111&#x27;</span>, <span class="string">&#x27;산업공학&#x27;</span>) ;</span><br><span class="line"><span class="comment">-- ❹ 정상 수행</span></span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> 학생<span class="number">2</span>(학번, 이름, 학년, 나이, 성별, 휴대폰번호, 소속학과)</span><br><span class="line"><span class="keyword">VALUES</span> (<span class="string">&#x27;s222&#x27;</span>, <span class="string">&#x27;박태환&#x27;</span>, <span class="number">2</span>, <span class="keyword">NULL</span>, <span class="string">&#x27;남&#x27;</span>, <span class="string">&#x27;010-1111-1111&#x27;</span>, <span class="string">&#x27;산업공학&#x27;</span>) ; </span><br><span class="line"><span class="comment">-- ❺ UNIQUE 제약 조건 오류(‘휴대폰번호’열 값이 중복됨)</span></span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> 학생<span class="number">2</span>(학번, 이름, 학년, 나이, 성별, 휴대폰번호, 소속학과)</span><br><span class="line"><span class="keyword">VALUES</span> (<span class="string">&#x27;s222&#x27;</span>, <span class="string">&#x27;박태환&#x27;</span>, <span class="number">2</span>, <span class="keyword">NULL</span>, <span class="string">&#x27;남&#x27;</span>, <span class="string">&#x27;010-2222-2222&#x27;</span>, <span class="string">&#x27;산업공학&#x27;</span>) ;</span><br><span class="line"><span class="comment">-- ❻ 정상 수행</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> 수강<span class="number">2</span>(학번, 과목번호, 신청날짜)</span><br><span class="line"><span class="keyword">VALUES</span> (<span class="string">&#x27;s111&#x27;</span>, <span class="string">&#x27;c111&#x27;</span>, <span class="string">&#x27;2019-12-31&#x27;</span>) ;</span><br><span class="line"><span class="comment">-- ❼ 정상 수행</span></span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> 수강<span class="number">2</span>(학번, 과목번호, 신청날짜, 중간성적, 기말성적, 평가학점)</span><br><span class="line"><span class="keyword">VALUES</span> (<span class="string">&#x27;s111&#x27;</span>, <span class="string">&#x27;c222&#x27;</span>, <span class="string">&#x27;2019-12-31&#x27;</span>, <span class="number">93</span>, <span class="number">98</span>, <span class="string">&#x27;A&#x27;</span>) ; </span><br><span class="line"><span class="comment">-- ❽ 외래키 제약 조건 오류(입력 과목번호 값이 ‘과목2’ 테이블에 존재하지 않음)</span></span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> 수강<span class="number">2</span>(학번, 과목번호, 신청날짜, 중간성적, 기말성적, 평가학점)</span><br><span class="line"><span class="keyword">VALUES</span> (<span class="string">&#x27;s111&#x27;</span>, <span class="string">&#x27;c111&#x27;</span>, <span class="string">&#x27;2019-12-31&#x27;</span>, <span class="number">93</span>, <span class="number">98</span>, <span class="string">&#x27;A&#x27;</span>) ; </span><br><span class="line"><span class="comment">-- ❾ 기본키 제약 조건 오류(기본키 ‘학번’과 ‘과목번호’열의 조합이 중복 값이 존재함)</span></span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> 수강<span class="number">2</span>(학번, 과목번호, 신청날짜, 중간성적, 기말성적, 평가학점)</span><br><span class="line"><span class="keyword">VALUES</span> (<span class="string">&#x27;s222&#x27;</span>, <span class="string">&#x27;c111&#x27;</span>, <span class="string">&#x27;2019-12-31&#x27;</span>, <span class="number">93</span>, <span class="number">98</span>, <span class="string">&#x27;A&#x27;</span>) ;</span><br><span class="line"><span class="comment">-- ❿ 정상 수행</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="2-테이블-수정-ALTER문"><a href="#2-테이블-수정-ALTER문" class="headerlink" title="2) 테이블 수정 ALTER문"></a>2) 테이블 수정 ALTER문</h2><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> 테이블_이름</span><br><span class="line">	&#123; [<span class="keyword">ADD</span><span class="operator">|</span>MODIFY] 열_이름 데이터_유형 [<span class="keyword">NULL</span><span class="operator">|</span><span class="keyword">NOT</span> <span class="keyword">NULL</span>] [<span class="keyword">DEFAULT</span> 기본_값] &#125;</span><br><span class="line">	<span class="operator">|</span> &#123; <span class="keyword">ADD</span> <span class="keyword">CONSTRAINT</span> 제약조건_이름 제약조건_상새내용 &#125;</span><br><span class="line">	<span class="operator">|</span> &#123; <span class="keyword">DROP</span> <span class="keyword">COLUMN</span> 열_이름 &#125;</span><br><span class="line">	<span class="operator">|</span> &#123; <span class="keyword">DROP</span> <span class="keyword">CONSTRAINT</span> 제약조건_이름 &#125;;</span><br><span class="line"></span><br><span class="line"># <span class="string">&#x27;학생2&#x27;</span> 테이블에 새로운 <span class="string">&#x27;등록날짜&#x27;</span>열을 추가히시오.</span><br><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> 학생<span class="number">2</span></span><br><span class="line">  <span class="keyword">ADD</span> 등록날짜 DATETIME <span class="keyword">NOT</span> <span class="keyword">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">&#x27;2019-12-30&#x27;</span>;</span><br><span class="line"></span><br><span class="line"># <span class="string">&#x27;학생2&#x27;</span> 테이블의 <span class="string">&#x27;등록날짜&#x27;</span> 열을 삭제하시오</span><br><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> 학생<span class="number">2</span></span><br><span class="line">  <span class="keyword">DROP</span> <span class="keyword">COLUMN</span> 등록날짜;</span><br></pre></td></tr></table></figure>
+
+<h2 id="3-테이블-삭제-DROP문"><a href="#3-테이블-삭제-DROP문" class="headerlink" title="3) 테이블 삭제 DROP문"></a>3) 테이블 삭제 DROP문</h2><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">DROP</span> <span class="keyword">TABLE</span> 테이블_이름;</span><br><span class="line"></span><br><span class="line"># 테이블 삭제</span><br><span class="line"><span class="keyword">DROP</span> <span class="keyword">TABLE</span> 과목<span class="number">2</span>; # 삭제 불가 (참조 테이블 존재)</span><br><span class="line"></span><br><span class="line"><span class="keyword">DROP</span> <span class="keyword">TABLE</span> 수강<span class="number">2</span>; # 참조(자식) 테이블 삭제</span><br><span class="line"><span class="keyword">DROP</span> <span class="keyword">TABLE</span> 과목<span class="number">2</span>; # 삭제 가능</span><br></pre></td></tr></table></figure>
+
+<h1 id="2-SQL-데이터-제어문"><a href="#2-SQL-데이터-제어문" class="headerlink" title="2. SQL 데이터 제어문"></a>2. SQL 데이터 제어문</h1><hr>
+<h3 id="1-사용자-관리"><a href="#1-사용자-관리" class="headerlink" title="1) 사용자 관리"></a>1) 사용자 관리</h3><ol>
+<li><p>계정 생성: CREATE USER</p>
+ <figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">USER</span> 사용자_계정 IDENTIFIED <span class="keyword">BY</span> <span class="string">&#x27;비밀번호&#x27;</span>;</span><br><span class="line"></span><br><span class="line"># 생성된 가용자 계정 정보 확인</span><br><span class="line"><span class="keyword">SELECT</span> host, <span class="keyword">user</span> <span class="keyword">FROM</span> mysql.user;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>계정 삭제: DROP USER</p>
+ <figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">DROP</span> <span class="keyword">USER</span> 사용자_계정;</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h3 id="2-권한-관리"><a href="#2-권한-관리" class="headerlink" title="2) 권한 관리"></a>2) 권한 관리</h3><p><img src="/../../../../images/Lecture/2-2/DB/6%EC%9E%A5/6%EC%9E%A5.png"></p>
+<ol>
+<li><p>권한부여: GRANT</p>
+ <figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">GRANT</span> 권한_내용 <span class="keyword">ON</span> 권한_대상 <span class="keyword">TO</span> 사용자_계정;</span><br><span class="line"><span class="keyword">GRANT</span> 권한_내용 <span class="keyword">ON</span> 권한_대상 <span class="keyword">TO</span> 사용자_계정 <span class="keyword">WITH</span> <span class="keyword">GRANT</span> OPTION;</span><br><span class="line"></span><br><span class="line"># 권환 확인</span><br><span class="line"><span class="keyword">SHOW</span> GRANTS <span class="keyword">FOR</span> <span class="string">&#x27;user1&#x27;</span>@<span class="string">&#x27;127.1.1.1&#x27;</span>; # user1 사용자의 권한 표시</span><br><span class="line"><span class="keyword">SHOW</span> GRANTS; # 현재 접속 사용자의 권한 표시</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>권한 철회: REVOKE</p>
+ <figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">REVOKE</span> 권한_내용 <span class="keyword">ON</span> 권한_대상 <span class="keyword">FROM</span> 사용자_계정;❿</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h3 id="3-사용자-계정-생성"><a href="#3-사용자-계정-생성" class="headerlink" title="3) 사용자 계정 생성"></a>3) 사용자 계정 생성</h3><ol>
+<li><p>‘manager’ 관리자계정 생성</p>
+ <figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">USER</span> <span class="string">&#x27;manager&#x27;</span>@<span class="string">&#x27;%&#x27;</span> IDENTIFIED <span class="keyword">BY</span> <span class="string">&#x27;1234&#x27;</span>;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>‘manager’ 관리자 계정에 권한을 부여</p>
+ <figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">GRANT</span> <span class="keyword">ALL</span> <span class="keyword">ON</span> <span class="operator">*</span>_<span class="operator">*</span> <span class="keyword">TO</span> <span class="string">&#x27;manager&#x27;</span>@<span class="string">&#x27;%&#x27;</span> <span class="keyword">WITH</span> <span class="keyword">GRANT</span> OPTION;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>‘manager’ 관리자 계정으로 접속</p>
+</li>
+<li><p>접속한 사용자 아이디를 확인</p>
+ <figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">user</span>(); # 현재 MySQL 사용자 표시</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h1 id="3-뷰"><a href="#3-뷰" class="headerlink" title="3. 뷰"></a>3. 뷰</h1><hr>
+<div class="note info no-icon">
+            <p>실제 데이터를 저장하지 않는 <strong>가상 테이블</strong></p><ol><li>뷰에 대해 사용자가 질의를 요청할 떄 비로소 DBMS는 뷰 정의를 참조하여 질의를 수행하고 그 결과를 사용자에게 반환</li><li>주로 기반 테이블로부터 정의되지만 또 다른 뷰를 기반으로도 정의될 수도 있음</li></ol>
+          </div>
+
+<ul>
+<li>장점<ol>
+<li>편의성: 복잡한 질의문 작성이 쉽고 간단해진다</li>
+<li>보안성: 데이터 보안 유지가 쉽다</li>
+<li>재사용성: 반복되는 질의문 작성에 효율적이다</li>
+<li>독립성 스키마 변경에도 뷰 질의문은 변경할 필요가 없다</li>
+</ol>
+</li>
+</ul>
+<h2 id="1-생성"><a href="#1-생성" class="headerlink" title="1) 생성"></a>1) 생성</h2><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">VIEW</span> 뷰_이름 [(열_리스트)]</span><br><span class="line"><span class="keyword">AS</span> SELECT_검색문;</span><br><span class="line">  </span><br><span class="line"># 확인</span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">FROM</span> 뷰_이름</span><br><span class="line"></span><br><span class="line"># <span class="number">3</span>학년 혹은 <span class="number">4</span>학년 학생의 학생이름, 나이, 상, 학년으로 구성된 뷰를 <span class="string">&#x27;V1_고학년학생&#x27;</span>이라는 이름으로 생성하시오.</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">VIEW</span> V1_고학년학생(학생이름, 나이, 성, 학년)</span><br><span class="line"><span class="keyword">AS</span> <span class="keyword">SELECT</span> 이름, 나이, 성별, 학년</span><br><span class="line">   <span class="keyword">FROM</span> 학생</span><br><span class="line">   <span class="keyword">WHERE</span> 학년 <span class="operator">&gt;=</span> <span class="number">3</span> <span class="keyword">AND</span> 학년 <span class="operator">&lt;=</span> <span class="number">4</span>;</span><br><span class="line">  </span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">FROM</span> V1_고학년학생; # V1_고학년학생 뷰의 데이터 확인</span><br></pre></td></tr></table></figure>
+
+<h2 id="2-삭제"><a href="#2-삭제" class="headerlink" title="2) 삭제"></a>2) 삭제</h2><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">DROP</span> <span class="keyword">VIEW</span> 뷰_이름;</span><br><span class="line"></span><br><span class="line"><span class="keyword">DROP</span> <span class="keyword">VIEW</span> V1_고학년학생 # V1_고학년학생 뷰 삭제</span><br></pre></td></tr></table></figure>
+
+<h2 id="3-활용"><a href="#3-활용" class="headerlink" title="3) 활용"></a>3) 활용</h2><ol>
+<li><p>검색</p>
+ <figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">VIEW</span> V1_고학년학생(학생이름, 나이, 성, 학년)</span><br><span class="line"><span class="keyword">AS</span> <span class="keyword">SELECT</span> 이름, 나이, 성별, 학년</span><br><span class="line">	 <span class="keyword">FROM</span> 학생</span><br><span class="line">	 <span class="keyword">WHERE</span> 학년 <span class="operator">&gt;=</span> <span class="number">3</span> <span class="keyword">AND</span> 학년 <span class="operator">&lt;=</span> <span class="number">4</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">VIEW</span> V3_고학년여학생</span><br><span class="line"><span class="keyword">AS</span> <span class="keyword">SELECT</span> <span class="operator">*</span></span><br><span class="line">	 <span class="keyword">FROM</span> V1_고학년학생</span><br><span class="line">	 <span class="keyword">WHERE</span> 성 <span class="operator">=</span> <span class="string">&#x27;여&#x27;</span></span><br><span class="line"></span><br><span class="line"># 위에 생성된 뷰들을 통해 고학년 여학생 정보만 검색</span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">FROM</span> V1_고학년학생</span><br><span class="line"><span class="keyword">WHERE</span> 성 <span class="operator">=</span> <span class="string">&#x27;여&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">FROM</span> V3_고학년여학생;</span><br><span class="line"></span><br><span class="line"># 뷰를 사용하지 않는 경유</span><br><span class="line"><span class="keyword">SELECT</span> 이름 <span class="keyword">AS</span> <span class="string">&#x27;학생이름&#x27;</span>, 나이, 성별 <span class="keyword">AS</span> <span class="string">&#x27;성&#x27;</span>, 학년</span><br><span class="line"><span class="keyword">FROM</span> 학생</span><br><span class="line"><span class="keyword">WHERE</span> 학년 <span class="operator">&gt;=</span> <span class="number">3</span> <span class="keyword">AND</span> 학년 <span class="operator">&lt;=</span> <span class="number">4</span> <span class="keyword">AND</span> 성별 <span class="operator">=</span> <span class="string">&#x27;여&#x27;</span>;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>데이터 변경<br>→ 특정 경우로 한정 됨</p>
+<ul>
+<li><p>변경 제한의 이유</p>
+<ol>
+<li>뷰를 정의하는 ‘SELECT_검색문’의 조건이 다양하기 때문</li>
+<li>뷰가 참조하는 기반 테이블을 변경해야 하므로 내부 처리가 어려운 경우는 변경이 허용되지 않음<br></li>
+</ol>
+  <div class="note info no-icon">
+            <p>갱신이 불가능한 뷰 (입력, 수정, 삭제 제한 됨)</p><ol><li>기반 테이블의 기본키를 포함하지 않은 뷰</li><li>집계 함수(또는 계산)결과를 초함하는 뷰</li><li>DISRINCT 키워드를 적용한 결과를 포함하는 뷰</li><li>GROUP BY 절을 적용한 결과를 포함하는 뷰</li><li>다수의 기반 테이블의 조인을 통해 생성된 뷰</li><li>뷰에 포함되지 않은 기반 테이블의 열이 NOT NULL인 경우</li></ol>
+          </div></li>
+</ul>
+</li>
+</ol>
+<h1 id="4-인덱스"><a href="#4-인덱스" class="headerlink" title="4. 인덱스"></a>4. 인덱스</h1><hr>
+<div class="note info no-icon">
+            <p>테이블 안의 데이터를 쉽고 빠르게 찾을 수 있도록 만든 데이터베이스 객체</p><ul><li>필요성<br>→ SQL을 실행할 때, 디스크 접근 횟수를 줄여 검색 속도를 높이기 위함<ul><li>대부분의 DBMS는 B-트리(Balanced tree) 구조의 인덱스를 지원</li><li>장점: 루트 노드로부터 리프 노트까지의 탐색 길이가 같아서 모든 데이터에 대한 일정 수준의 검색 시간을 보장</li></ul></li></ul><p><img src="/../../../../images/Lecture/2-2/DB/6%EC%9E%A5/6%EC%9E%A5%201.png"></p>
+          </div>
+
+<h2 id="1-생성-1"><a href="#1-생성-1" class="headerlink" title="1) 생성"></a>1) 생성</h2><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> [REVERSE] [<span class="keyword">UNIQUE</span>] INDEX [인덱스_이름]</span><br><span class="line">   <span class="keyword">ON</span> 테이블_이름 (&#123;열_이름 [<span class="keyword">ASC</span><span class="operator">|</span><span class="keyword">DESC</span>]&#125;);</span><br><span class="line"></span><br><span class="line"># <span class="string">&#x27;수강&#x27;</span> 테이블의 <span class="string">&#x27;학번&#x27;</span>, <span class="string">&#x27;과목번호&#x27;</span> 열을 대상으로 인덱스 <span class="string">&#x27;idx_수강&#x27;</span>을 생성하시오</span><br><span class="line"><span class="keyword">CREATE</span> INDEX idx_수간</span><br><span class="line"><span class="keyword">ON</span> 수강 (학번.과목번호);</span><br><span class="line"></span><br><span class="line"><span class="keyword">SHOW</span> INDEX <span class="keyword">FROM</span> 수강; # 수강 인덱스 확인</span><br><span class="line"></span><br><span class="line"># <span class="string">&#x27;과목&#x27;</span> 테이블의 이름 열을 대상으로 유일한 값을 갖는 인덱스 <span class="string">&#x27;idx_과목&#x27;</span>을 생성하시오.</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">UNIQUE</span> INDEX idx_과목</span><br><span class="line"><span class="keyword">ON</span> 과목 (이름 <span class="keyword">ASC</span>);</span><br></pre></td></tr></table></figure>
+
+<h2 id="2-삭제-1"><a href="#2-삭제-1" class="headerlink" title="2) 삭제"></a>2) 삭제</h2><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">DROP</span> INDEX 인덱스_이름 <span class="keyword">ON</span> 테이블_이름;</span><br><span class="line"></span><br><span class="line"># 인덱스 <span class="string">&#x27;idx_수강&#x27;</span>을 삭제하고 <span class="string">&#x27;과목&#x27;</span> 테이블의 인덱스 <span class="string">&#x27;idx_과목&#x27;</span>을 삭제하시오.</span><br><span class="line"><span class="keyword">DROP</span> INDEX idx_수강 <span class="keyword">ON</span> 수강;</span><br><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> 과목 <span class="keyword">DROP</span> INDEX idx_과목;ㅁ</span><br></pre></td></tr></table></figure>
+
+<h2 id="3-고려사항"><a href="#3-고려사항" class="headerlink" title="3) 고려사항"></a>3) 고려사항</h2><div class="note info no-icon">
+            <p>불필요한 인덱스는 오히려 성능을 떨어뜨리고 저장 공간만 낭비할 수 있으므로 꼭 필요한 만큼만 효과적으로 생성해야 함.</p>
+          </div>
+
+<ol>
+<li><p>인덱스 생성이 필요한 경우</p>
+<ol>
+<li><strong>기본키</strong>와 <strong>외래키</strong>의 경우, 인덱스 생성이 바람직<br> → 대부분의 DBMS는 기본키에 대래서 자동으로 인덱스를 생성함</li>
+<li>WHERE 절 조건식에 자주 사용되는 테이블 열의 경우, 인덱스 생성이 바람직함</li>
+<li>조인 조건식에 자주 사용되는 테이블 열도 인덱스 생성이 바람직함</li>
+<li>하나의 <strong>테이블에 3 ~ 5개 정도</strong>의 인덱스가 효과적임</li>
+<li>가변길이 문자형이나 실수형, 날짜형 열보다는 정수형, 고정길이 문자형 열에 인덱스를 생성하는 것이 바람직함</li>
+<li>ORDER BY절이나 GROUP BY절에 자주 사용되는 열의 경우, 인덱스 생성을 고려할 수 있음</li>
+</ol>
+</li>
+<li><p>인덱스 생성이 불필요한 경우</p>
+<ol>
+<li>갱신이 빈번한 테이블 열의 경우, 인덱스가 바람직하지 않음</li>
+<li>집계 함수, 내장 함수를 적용하여 열 값을 변형하는 경우, 인덱스가 효과적이지 않음</li>
+<li>‘성별’ 같은 열처럼 도메인이 작아서 열의 선택도(selectivity)가 높을 경우, 인덱스가 바람직하지 않음</li>
+<li>범위 검색을 하는 경우, 인덱스가 바람직하지 않음</li>
+<li>테이블의 행 개수가 별로 없는 경우, 인덱스가 바람직하지 않음</li>
+</ol>
+</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+      
+
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/Lecture/2-2/OS/2023-10-03-3%EC%9E%A5%20%ED%94%84%EB%A1%9C%EC%84%B8%EC%8A%A4/" rel="prev" title="3장 프로세스">
+      <i class="fa fa-chevron-left"></i> 3장 프로세스
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2023-11-06-%EC%A4%91%EC%B2%A9%20%20%EC%84%A0%EC%96%B8%20%EB%B0%8F%20%EC%9D%B5%EB%AA%85%20%EA%B0%9D%EC%B2%B4/" rel="next" title="abc">
+      abc <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          목차
+        </li>
+        <li class="sidebar-nav-overview">
+          흝어보기
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-SQL-%EB%8D%B0%EC%9D%B4%ED%84%B0-%EC%A0%95%EC%9D%98%EB%AC%B8-DDL"><span class="nav-text">1. SQL 데이터 정의문 &#x3D; DDL</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%ED%85%8C%EC%9D%B4%EB%B8%94-%EC%83%9D%EC%84%B1-CREATE%EB%AC%B8"><span class="nav-text">1) 테이블 생성 CREATE문</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%EB%8D%B0%EC%9D%B4%ED%84%B0-%EC%9C%A0%ED%98%95"><span class="nav-text">데이터 유형</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%EB%AC%B4%EA%B2%B0%EC%84%B1-%EC%A0%9C%EC%95%BD-%EC%A1%B0%EA%B1%B4%EC%9D%98-%EB%8F%99%EC%9E%91-%ED%99%95%EC%9D%B8"><span class="nav-text">무결성 제약 조건의 동작 확인</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%ED%85%8C%EC%9D%B4%EB%B8%94-%EC%88%98%EC%A0%95-ALTER%EB%AC%B8"><span class="nav-text">2) 테이블 수정 ALTER문</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%ED%85%8C%EC%9D%B4%EB%B8%94-%EC%82%AD%EC%A0%9C-DROP%EB%AC%B8"><span class="nav-text">3) 테이블 삭제 DROP문</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-SQL-%EB%8D%B0%EC%9D%B4%ED%84%B0-%EC%A0%9C%EC%96%B4%EB%AC%B8"><span class="nav-text">2. SQL 데이터 제어문</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%EC%82%AC%EC%9A%A9%EC%9E%90-%EA%B4%80%EB%A6%AC"><span class="nav-text">1) 사용자 관리</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%EA%B6%8C%ED%95%9C-%EA%B4%80%EB%A6%AC"><span class="nav-text">2) 권한 관리</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%EC%82%AC%EC%9A%A9%EC%9E%90-%EA%B3%84%EC%A0%95-%EC%83%9D%EC%84%B1"><span class="nav-text">3) 사용자 계정 생성</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%EB%B7%B0"><span class="nav-text">3. 뷰</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%EC%83%9D%EC%84%B1"><span class="nav-text">1) 생성</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%EC%82%AD%EC%A0%9C"><span class="nav-text">2) 삭제</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%ED%99%9C%EC%9A%A9"><span class="nav-text">3) 활용</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%EC%9D%B8%EB%8D%B1%EC%8A%A4"><span class="nav-text">4. 인덱스</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%EC%83%9D%EC%84%B1-1"><span class="nav-text">1) 생성</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%EC%82%AD%EC%A0%9C-1"><span class="nav-text">2) 삭제</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%EA%B3%A0%EB%A0%A4%EC%82%AC%ED%95%AD"><span class="nav-text">3) 고려사항</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Mingyu Park</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-name">포스트</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">카테고리</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Mingyu Park</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="Symbols count total">11k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="Reading time total">39 mins.</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<script>
+  function loadCount() {
+    var d = document, s = d.createElement('script');
+    s.src = 'https://dev-note-3.disqus.com/count.js';
+    s.id = 'dsq-count-scr';
+    (d.head || d.body).appendChild(s);
+  }
+  // defer loading until the whole page loading is completed
+  window.addEventListener('load', loadCount, false);
+</script>
+<script>
+  var disqus_config = function() {
+    this.page.url = "https://eht3r.github.io/Lecture/2-2/DB/2023-11-01-6%E1%84%8C%E1%85%A1%E1%86%BC%20SQL%20%E1%84%92%E1%85%AA%E1%86%AF%E1%84%8B%E1%85%AD%E1%86%BC/";
+    this.page.identifier = "/Lecture/2-2/DB/2023-11-01-6장 SQL 활용/";
+    this.page.title = "6장 SQL 활용";
+    };
+  NexT.utils.loadComments(document.querySelector('#disqus_thread'), () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://dev-note-3.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+</body>
+</html>
