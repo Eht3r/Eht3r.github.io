@@ -20,3 +20,12 @@ package-lock.json
    
 # Misc
 # assets/js/dist  ### 주석 처리
+
+.obsidian/
+
+.obsidian/workspace-mobile.json
+.obsidian/workspace.json
+.obsidian/app.json
+
+.trash/
+.DS_Store
