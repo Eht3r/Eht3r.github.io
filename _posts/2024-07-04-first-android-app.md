@@ -6,6 +6,7 @@ categories:
 tags:
   - 안드로이드
   - Compose_사용_시_알아야_하는_Android_기본사항
+date: 2024-07-04 13:59 +0900
 ---
 # 1. Kotlin 소개
 ## 1) Kotlin을 사용한 첫 프로그램
@@ -28,5 +29,5 @@ kotlin에서 main 함수는 kotlin 컴파일러가 시작되는 특정 위치로
 	→ 이러한 입력을 사용히여 목적을 달성. 입력은 선택사항
 * 함수에는 작업을 실행하는 명형이 포함된 **본문**도 있음
 
-![함수](/images/Pasted%20image%2020240704132500.png)
+![함수](/assets/img/function.png)
 
